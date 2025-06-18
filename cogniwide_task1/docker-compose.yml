@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: voice_agent
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: voice_agent
+      TWILIO_ACCOUNT_SID: your_sid
+      TWILIO_AUTH_TOKEN: your_token
+      TWILIO_CALLER_ID: "+10000000000"
+      TWILIO_STREAM_URL: "wss://example.com/stream"
+    depends_on:
+      - db
+
+volumes:
+  db_data:

@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy
+psycopg2-binary
+python-dotenv
+uvicorn
+loguru
+prometheus_fastapi_instrumentator
+requests
+openai
+deepgram-sdk
+twilio
+

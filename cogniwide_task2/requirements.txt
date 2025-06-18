@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+sqlalchemy>=1.4.0
+databases[sqlite,postgresql]
+asyncpg
+pydantic
+aiohttp
+python-dotenv
+prometheus-client
+opentelemetry-sdk
+opentelemetry-instrumentation-fastapi
+python-json-logger
+sendgrid
+twilio
