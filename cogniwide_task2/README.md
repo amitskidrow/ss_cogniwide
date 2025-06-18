@@ -1,29 +1,46 @@
-# AI Multi-Agent Chat Support System (PoC-2)
+# PoC-2 — AI Multi-Agent Chat Support System
 
-Proof-of-concept chat platform orchestrating multiple AI agents (intent classifier, router, FAQ, ticketing, account, notification).
+## 1. Overview
+Chat platform that chains specialised AI agents (Intent, FAQ, Ticket, Account, Notify) to resolve support queries autonomously.
 
-## Requirements
-- Docker & Docker Compose
-
-## Quickstart
-```bash
-# Build and launch services
-docker-compose up --build
-
-# In a new terminal, send a test chat message:
-curl -X POST http://localhost:8000/chat/message \
-  -H "X-API-KEY: your_api_key_here" \
-  -H "Content-Type: application/json" \
-  -d '{"user_id":"user123","text":"Hello, I need help","locale":"en"}'
+## 2. Architecture
+```mermaid
+flowchart TD
+    U[User / Browser] -->|POST /chat/message| A[FastAPI<br>Gateway]
+    A --> B(Intent Classifier)
+    B --> C(Routing Agent)
+    C -->|FAQ| D(FAQ Agent)
+    C -->|Ticket| E(Ticket Agent)
+    C -->|Account| F(Account Agent)
+    C -->|Fallback| G(Live-Agent Sim)
+    E --> H(Notify Agent)
+    D & E & F --> I[PostgreSQL]
 ```
 
-## Endpoints
-- `POST /chat/message`
-- `GET /session/{id}`
-- `GET /ticket/{id}`
-- `POST /notify/test`
-- `GET /health`
-- `DELETE /session/{id}`
-- `/metrics` (Prometheus)
+## 3. Setup
 
-For full details see [PRD.md](PRD.md).
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+## 4. API
+
+| Method | Path            | Purpose           |
+| ------ | --------------- | ----------------- |
+| POST   | `/chat/message` | Ingest chat       |
+| GET    | `/session/{id}` | Full conversation |
+| GET    | `/ticket/{id}`  | Ticket status     |
+
+## 5. Environment Variables (`.env.example`)
+
+Includes `OPENAI_API_KEY`, `POSTGRES_URL`, `SENDGRID_API_KEY`, `WHATSAPP_TOKEN`, `VECTOR_DB_PATH`.
+
+## 6. Testing
+
+`pytest -q` for agent unit tests.
+
+## 7. License
+
+MIT – see repository root.
+

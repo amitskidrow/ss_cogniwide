@@ -1,72 +1,43 @@
-# Voice Agent PoC
+# PoC-1 — AI Voice Agent System
 
-This repository contains a minimal FastAPI application and a `docker-compose.yml` configuration that starts both the API service and a PostgreSQL database. It is intended as a starting point for the PoC described in `PRD.md`.
+## 1. Overview
+Automated voice assistant that places & receives calls, transcribes speech, extracts intent, and logs tickets.
 
-## Requirements
-- [Docker](https://docs.docker.com/get-docker/) with Compose plugin
-
-## Running the app
-Run the following command from the project root:
-
-```bash
-docker compose up --build
+## 2. Architecture
+```mermaid
+flowchart LR
+    subgraph Telephony
+        A[Twilio / Vapi]
+    end
+    A -->|Webhook| B(FastAPI<br>CallController)
+    B --> C(TTS ↔ STT stream)
+    B --> D(Intent Extractor)
+    B --> E[PostgreSQL]
+    D -->|Ticket| E
 ```
 
-For local development without Docker, run:
+## 3. Setup
 
-```bash
-uvicorn app.main:app --reload
-```
+1. `cp .env.example .env` and fill in keys.
+2. `docker compose up --build` or `make dev`.
 
-The API will be available at [http://localhost:8000](http://localhost:8000). Swagger UI can be accessed at [http://localhost:8000/docs](http://localhost:8000/docs).
+## 4. API
 
-The database data is stored in the `db_data` Docker volume declared in `docker-compose.yml`.
+| Method | Path                 | Description            |
+| ------ | -------------------- | ---------------------- |
+| POST   | `/call/outbound`     | Initiate outbound call |
+| POST   | `/webhook/twilio`    | Handle inbound events  |
+| GET    | `/conversation/{id}` | Retrieve transcript    |
 
-## Locale configuration
-The application uses a configurable default locale for speech services. The
-current value is stored in `app/config.json` and can be retrieved or updated via
-the `/config/locale` API endpoints.
+## 5. Environment Variables (`.env.example`)
 
-## Inbound call processing
-Recorded inbound calls can be submitted to `/call/inbound` with a JSON payload
-containing the caller phone number and a URL to the audio recording. The service
-will transcribe the audio, classify the intent and create a ticket when
-appropriate.
+See file; includes `OPENAI_API_KEY`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`, `POSTGRES_URL`, `ELEVENLABS_API_KEY`.
 
-## Environment variables
-The web service reads the following environment variables to connect to the database:
+## 6. Testing
 
-- `DB_HOST`
-- `DB_PORT`
-- `DB_USER`
-- `DB_PASSWORD`
-- `DB_NAME`
+`pytest -q` runs unit tests (STT, intent).
 
-For telephony integration the following Twilio credentials are required:
-- `TWILIO_ACCOUNT_SID`
-- `TWILIO_AUTH_TOKEN`
-- `TWILIO_CALLER_ID`
-- `TWILIO_STREAM_URL` (optional)
+## 7. License
 
-Default values are provided in `docker-compose.yml`, but you can override them using a `.env` file or by exporting them before running Compose.
+MIT – see repository root.
 
-## Project structure
-```
-├── app
-│   └── main.py        # FastAPI application
-├── Dockerfile         # Image definition for the API service
-├── docker-compose.yml # Multi-service configuration
-├── requirements.txt   # Python dependencies
-└── PRD.md             # Product requirements
-```
-
-## Deleting records
-You can remove stored conversations or tickets using the management script. It
-uses the same `DATABASE_URL` environment variable as the web service.
-
-```bash
-python scripts/manage.py delete-conversation <conversation_id>
-python scripts/manage.py delete-ticket <ticket_id>
-```
-
-Replace the placeholders with the numeric IDs to delete.
